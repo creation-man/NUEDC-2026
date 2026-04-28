@@ -24,7 +24,7 @@ float PID::calculate(float measured) {
 
     // 2. I 项：误差的累加（需要一个积分变量）
     // 注意：位置式的积分是误差的随时间的累积
-    _integral += 0;
+    _integral += _err;
 
     // 简单的积分限幅（防止积分饱和/爆掉）
     if (_integral > _max_out) _integral = _max_out;

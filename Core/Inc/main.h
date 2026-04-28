@@ -53,7 +53,13 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+#define Irremote_Pin GPIO_PIN_11
+#define Irremote_GPIO_Port GPIOG
+#define Irremote_EXTI_IRQn EXTI15_10_IRQn
+#define TRIG_Pin GPIO_PIN_11
+#define TRIG_GPIO_Port GPIOF
+#define ECHO_Pin GPIO_PIN_12
+#define ECHO_GPIO_Port GPIOF
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

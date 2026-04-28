@@ -6,11 +6,9 @@
 #define NUEDC_CALLBACK_HPP
 
 
+extern UART_HandleTypeDef huart1;
 
-class Callback {
-
-};
-
-
+void USART1_UART_Init(void);
+void Bsp_TIM7_Init(void);
 
 #endif //NUEDC_CALLBACK_HPP

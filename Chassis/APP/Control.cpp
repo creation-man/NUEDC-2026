@@ -3,14 +3,17 @@
 #include "cmsis_os.h"
 #include "PIDcontrol.hpp"
 #include "Vision.hpp"
+#include "remote.hpp"
+#include "MPU6050.hpp"
+
 // --- PID 实例初始化 ---
 // 既然你之前反馈给负数才正常，这里建议统一物理极性
 // 如果发现电机反转，建议在 calculate 前面加负号，而不是给负的 Kp
 static PID motor_pids[4] = {
-    PID(30.0f, 0, 0, 3600.0f),
-    PID(30.0f, 0, 0, 3600.0f),
-    PID(30.0f, 0, 0, 3600.0f),
-    PID(30.0f, 0, 0, 3600.0f)
+    PID(1.0f, 0.6, 0, 3600.0f),
+    PID(1.0f, 0.6, 0, 3600.0f),
+    PID(1.0f, 0.6, 0, 3600.0f),
+    PID(1.0f, 0.6, 0, 3600.0f)
 };
 
 const float RPM_FACTOR = 5.7692f;
@@ -27,6 +30,8 @@ float output_pwm_1=0;
 float output_pwm_2=0;
 float output_pwm_3=0;
 int vL, vR;
+float target=0;
+float target_yaw=0;
 // 用于滤波的上一时刻转速
 static float last_valid_rpm[4] = {0};
 
@@ -35,6 +40,7 @@ extern "C" void Control(void *argument) {
 
 
     for(;;) {
+        uint8_t key = IrRemote::GetInstance().GetKey();
         // --- 第一步：获取反馈 ---
         for(int i = 0; i < 4; i++) {
             encoders[i].update();
@@ -64,12 +70,25 @@ extern "C" void Control(void *argument) {
         current_rpm_2 = raw_rpm[2];
         current_rpm_3 = raw_rpm[3];
 
-        vision.getTargetSpeeds(vL, vR); // 获取解析好的速度
+        vision.getTargetSpeeds(vL, vR); // 获取解析好的速度，视觉的
+        if (key != IrRemote::ERROR_CODE) {
+            // 假设你通过串口测出右键的代码是 0x44
+            if (key == 0x60) {
+
+                // --- 陀螺仪转向逻辑 ---
+                // 这里调用你之前校准过的 IMU 逻辑
+                 target = 90.0f;
+
+                // 使用你提到的 PID 或双环控制转向
+                // chassis.setTargetAngle(target_yaw);
+            }
+        }
+        target_yaw =(target-imu.yaw) * 2; // 向右转90度
         // --- 第三步：PID 计算 ---
-        motor_pids[0].setTarget(vL);
-        motor_pids[1].setTarget(vL);
-        motor_pids[2].setTarget(vR);
-        motor_pids[3].setTarget(vR);
+        motor_pids[0].setTarget(-target_yaw);
+        motor_pids[1].setTarget(-target_yaw);
+        motor_pids[2].setTarget(target_yaw);
+        motor_pids[3].setTarget(target_yaw);
 
         output_pwm_0 = motor_pids[0].calculate(current_rpm_0);
         output_pwm_1 = motor_pids[1].calculate(current_rpm_1);

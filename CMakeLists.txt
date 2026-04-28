@@ -49,6 +49,14 @@ add_executable(${CMAKE_PROJECT_NAME}
         Chassis/APP/Vision.hpp
         Chassis/Module/Callback.cpp
         Chassis/Module/Callback.hpp
+        Chassis/APP/MPU6050.cpp
+        Chassis/APP/MPU6050.hpp
+        Chassis/Module/Delay.cpp
+        Chassis/Module/Delay.hpp
+        Chassis/Module/remote.cpp
+        Chassis/Module/remote.hpp
+        Chassis/APP/uitrasonic.cpp
+        Chassis/APP/uitrasonic.hpp
 )
 
 # Add STM32CubeMX generated sources
