@@ -14,8 +14,10 @@
 #include "remote.hpp"
 #include "uitrasonic.hpp"
 #include "tim.h"
+#include "OLED.hpp"
 unsigned char VofaUartSendArr[32] = {0};
 float dist=0;
+float dummy =0;
 /* 实例化对象 */
 
 // 绑定硬件 I2C2，默认地址 0x68
@@ -51,19 +53,66 @@ extern "C" void SerailTask(void *argument)
      Bsp_TIM7_Init();
 
     auto & myScanner = Sensor::HCSR04::getInstance(GPIOF, GPIO_PIN_11, GPIOF, GPIO_PIN_12, &htim7);
+    //超声波
     if(imu.Init() == 0) {
         // 初始化成功后，立刻进行校准
         // 此时不要碰板子！
         imu.Calibrate_Gyro();
     }
+    //陀螺仪
+
+    char str_buf[32]; // 用于存放格式化后的字符串
+    float current_dist = 0.0f;
+    // 获取单例引用（建议在函数顶部缓存，避免重复调用）
+    auto& oled = OLED::Driver::getInstance();
+    oled.init(&hi2c1);
+
+    // 【静态显示部分】：在进入循环前画好不需要动的内容
+    oled.clear();
+    // 画一个标题，最后两个参数为 false，表示先存入缓存不立即刷新屏幕
+    oled.puts((char*)"--- MONITOR ---", &Font_7x10, OLED::Color::White);
+    // 刷新一次，让标题显示出来
+    oled.refresh();
     for (;;) {
         imu.Read_All();
         float current_accel_x = imu.getAccelX();
         imu.Update_Angles(0.01f);
-        volatile int dummy = myScanner.getDistanceAverage(1);
+
+        // 使用滑动平均滤波（去除最大最小值后求平均），测量5次
+        // 可选方案：
+        // - getDistanceAverage(5): 简单平均，速度快
+        // - getDistanceMedian(5): 中值滤波，抗干扰最强但稍慢
+        // - getDistanceSmoothed(5): 去除极值后平均，平衡性能和稳定性（推荐）
+         dummy = myScanner.getDistanceSmoothed(5);
+
+        // 调试输出
+        printf("Distance: %.2f cm\r\n", dummy);
+
         //VofaUartSend();
        // IrRemote::GetInstance().ProcessAndPrint();
 
+
+
+
+     // 第一步：清空缓冲区
+     oled.clear();
+
+     // 重新画上静态标题（使用小字体，高度10像素）
+     oled.gotoXY(0, 0);
+     oled.puts((char*)"--- MONITOR ---", &Font_7x10, OLED::Color::White);
+
+     // 第二步：格式化并画上动态数值（手动转换浮点数，避免sprintf的%f问题）
+     int dist_int  = (int)dummy;
+     int dist_frac = (int)((dummy - dist_int) * 100);
+     if (dist_frac < 0) dist_frac = -dist_frac; // 处理负数情况
+     sprintf(str_buf, "Dist:%d.%02d cm", dist_int, dist_frac);
+
+     // 在 y=12 的位置绘制，使用小字体（7x10），确保不超出32像素高度
+     oled.gotoXY(0, 12);
+     oled.puts(str_buf, &Font_7x10, OLED::Color::White);
+
+     // 第三步：一次性将缓存推送到屏幕（避免闪烁的关键）
+     oled.refresh();
 
        // printf("distance = %d.%d cm\r\n", (int)dist, (int)(dist * 100) % 100);
         osDelay((10));

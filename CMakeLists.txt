@@ -39,24 +39,28 @@ add_executable(${CMAKE_PROJECT_NAME}
         Chassis/BSP/Encode.hpp
         Chassis/APP/Control.cpp
         Chassis/APP/Control.hpp
-        Chassis/Module/RobotHardware.cpp
-        Chassis/Module/RobotHardware.hpp
-        Chassis/Module/Serial.cpp
-        Chassis/Module/Serial.hpp
-        Chassis/APP/PIDcontrol.cpp
-        Chassis/APP/PIDcontrol.hpp
+        Chassis/BSP/RobotHardware.cpp
+        Chassis/BSP/RobotHardware.hpp
+        Chassis/APP/Serial.cpp
+        Chassis/APP/Serial.hpp
+        Chassis/Module/PIDcontrol.cpp
+        Chassis/Module/PIDcontrol.hpp
         Chassis/APP/Vision.cpp
         Chassis/APP/Vision.hpp
         Chassis/Module/Callback.cpp
         Chassis/Module/Callback.hpp
-        Chassis/APP/MPU6050.cpp
-        Chassis/APP/MPU6050.hpp
+        Chassis/BSP/MPU6050.cpp
+        Chassis/BSP/MPU6050.hpp
         Chassis/Module/Delay.cpp
         Chassis/Module/Delay.hpp
-        Chassis/Module/remote.cpp
-        Chassis/Module/remote.hpp
-        Chassis/APP/uitrasonic.cpp
-        Chassis/APP/uitrasonic.hpp
+        Chassis/BSP/remote.cpp
+        Chassis/BSP/remote.hpp
+        Chassis/BSP/uitrasonic.cpp
+        Chassis/BSP/uitrasonic.hpp
+        Chassis/BSP/OLED.cpp
+        Chassis/BSP/OLED.hpp
+        Chassis/BSP/OLED_fonts.cpp
+        Chassis/BSP/OLED_fonts.hpp
 )
 
 # Add STM32CubeMX generated sources

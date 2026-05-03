@@ -1,10 +1,10 @@
 #include "Control.hpp"
 #include "RobotHardware.hpp"
 #include "cmsis_os.h"
-#include "PIDcontrol.hpp"
+#include "../Module/PIDcontrol.hpp"
 #include "Vision.hpp"
 #include "remote.hpp"
-#include "MPU6050.hpp"
+#include "../BSP/MPU6050.hpp"
 
 // --- PID 实例初始化 ---
 // 既然你之前反馈给负数才正常，这里建议统一物理极性
@@ -96,11 +96,11 @@ extern "C" void Control(void *argument) {
         output_pwm_3 = motor_pids[3].calculate(current_rpm_3);
 
         // --- 第四步：执行输出 ---
-        motors[0].setSpeed(output_pwm_0);
-        motors[1].setSpeed(output_pwm_1);
-        motors[2].setSpeed(output_pwm_2);
-        motors[3].setSpeed(output_pwm_3);
+        motors[0].setSpeed(0);
+        motors[1].setSpeed(0);
+        motors[2].setSpeed(0);
+        motors[3].setSpeed(0);
 
-        osDelay(10);
+        osDelay(50);
     }
 }

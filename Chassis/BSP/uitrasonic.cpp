@@ -24,6 +24,76 @@ float DistanceSensor::getDistanceAverage(uint8_t times) {
     return (validSamples > 0) ? (sum / static_cast<float>(validSamples)) : 0.0f;
 }
 
+// 中值滤波：排序后取中间值，有效去除突变异常值
+float DistanceSensor::getDistanceMedian(uint8_t times) {
+    if (times == 0) return 0.0f;
+
+    float samples[times];
+    uint8_t validSamples = 0;
+
+    // 采集多次测量
+    for (uint8_t i = 0; i < times; i++) {
+        float d = this->measureOnce();
+        if (d > 0.1f && d < 400.0f) { // 过滤无效值（HC-SR04有效范围2-400cm）
+            samples[validSamples++] = d;
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    if (validSamples == 0) return 0.0f;
+
+    // 冒泡排序（样本少，简单有效）
+    for (uint8_t i = 0; i < validSamples - 1; i++) {
+        for (uint8_t j = 0; j < validSamples - i - 1; j++) {
+            if (samples[j] > samples[j + 1]) {
+                float temp = samples[j];
+                samples[j] = samples[j + 1];
+                samples[j + 1] = temp;
+            }
+        }
+    }
+
+    // 返回中位数
+    if (validSamples % 2 == 0) {
+        return (samples[validSamples / 2 - 1] + samples[validSamples / 2]) / 2.0f;
+    } else {
+        return samples[validSamples / 2];
+    }
+}
+
+// 滑动平均滤波：去除中间值后求平均，兼顾稳定性和响应速度
+float DistanceSensor::getDistanceSmoothed(uint8_t times) {
+    if (times < 3) return getDistanceAverage(times);
+
+    float samples[times];
+    uint8_t validSamples = 0;
+
+    // 采集多次测量
+    for (uint8_t i = 0; i < times; i++) {
+        float d = this->measureOnce();
+        if (d > 0.1f && d < 400.0f) {
+            samples[validSamples++] = d;
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    if (validSamples < 3) return getDistanceAverage(validSamples);
+
+    // 找出最大值和最小值
+    float minVal = samples[0], maxVal = samples[0];
+    float sum = 0.0f;
+
+    for (uint8_t i = 0; i < validSamples; i++) {
+        sum += samples[i];
+        if (samples[i] < minVal) minVal = samples[i];
+        if (samples[i] > maxVal) maxVal = samples[i];
+    }
+
+    // 去除最大最小值后求平均
+    sum = sum - minVal - maxVal;
+    return sum / static_cast<float>(validSamples - 2);
+}
+
 // ==========================================
 // HCSR04 实现
 // ==========================================

@@ -17,6 +17,12 @@ namespace Sensor {
 
         // 虚函数：通用的均值滤波算法（子类自动继承，也可重写）
         virtual float getDistanceAverage(uint8_t times = 5);
+
+        // 中值滤波：去除异常值
+        virtual float getDistanceMedian(uint8_t times = 5);
+
+        // 滑动平均滤波：平滑数据
+        virtual float getDistanceSmoothed(uint8_t times = 5);
     };
 
     // ==========================================
