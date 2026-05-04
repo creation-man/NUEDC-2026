@@ -10,17 +10,17 @@
 // 既然你之前反馈给负数才正常，这里建议统一物理极性
 // 如果发现电机反转，建议在 calculate 前面加负号，而不是给负的 Kp
 static PID motor_pids[4] = {
-    PID(1.0f, 0.6, 0, 3600.0f),
-    PID(1.0f, 0.6, 0, 3600.0f),
-    PID(1.0f, 0.6, 0, 3600.0f),
-    PID(1.0f, 0.6, 0, 3600.0f)
+    PID(15.0f, 0.6, 0, 3600.0f),
+    PID(15.0f, 0.6, 0, 3600.0f),
+    PID(15.0f, 0.6, 0, 3600.0f),
+    PID(15.0f, 0.6, 0, 3600.0f)
 };
 
-const float RPM_FACTOR = 5.7692f;
+const float RPM_FACTOR = 2.8846f;
 // 最大合理转速阈值（根据你的电机规格设定，比如 500 RPM）
 // 超过这个值的跳变会被认为是噪声直接滤除
 const float MAX_REASONABLE_RPM = 1000.0f;
-
+float raw_rpm[4];
 float current_rpm_0=0;
 float current_rpm_1=0;
 float current_rpm_2=0;
@@ -49,7 +49,7 @@ extern "C" void Control(void *argument) {
         // --- 第二步：获取并过滤转速 (解决“猛抽”的关键) ---
 
         // 原始读数获取
-        float raw_rpm[4];
+
         raw_rpm[0] = (float)encoders[2].getSpeed() * RPM_FACTOR;
         raw_rpm[1] = (float)encoders[0].getSpeed() * RPM_FACTOR;
         raw_rpm[2] = -(float)encoders[3].getSpeed() * RPM_FACTOR;
@@ -83,7 +83,7 @@ extern "C" void Control(void *argument) {
                 // chassis.setTargetAngle(target_yaw);
             }
         }
-        target_yaw =(target-imu.yaw) * 2; // 向右转90度
+        target_yaw =100; // 向右转90度
         // --- 第三步：PID 计算 ---
         motor_pids[0].setTarget(-target_yaw);
         motor_pids[1].setTarget(-target_yaw);
@@ -96,11 +96,11 @@ extern "C" void Control(void *argument) {
         output_pwm_3 = motor_pids[3].calculate(current_rpm_3);
 
         // --- 第四步：执行输出 ---
-        motors[0].setSpeed(0);
-        motors[1].setSpeed(0);
-        motors[2].setSpeed(0);
-        motors[3].setSpeed(0);
+        motors[0].setSpeed(output_pwm_0);
+        motors[1].setSpeed(output_pwm_1);
+        motors[2].setSpeed(output_pwm_2);
+        motors[3].setSpeed(output_pwm_3);
 
-        osDelay(50);
+        osDelay(20);
     }
 }
