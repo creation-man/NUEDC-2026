@@ -1,5 +1,5 @@
-#ifndef LINE_TRACKER_HPP
-#define LINE_TRACKER_HPP
+#ifndef TRACKER_HPP
+#define TRACKER_HPP
 
 #include "main.h"
 #include <stdint.h>
